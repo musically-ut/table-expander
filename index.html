@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expand Data Algorithm</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // This function will be executed when the user clicks the "Expand" button
+        function expandData() {
+            // Get the input data from the textarea
+            const inputData = document.getElementById('inputData').value;
+            // Split the input data into rows and cells
+            let rows = inputData.split('\n').map(row => row.split('\t'));
+
+            // Your Python algorithm translated to JavaScript
+            const num_cols = rows.map(x => x.length);
+            const max_cols = Math.max(...num_cols);
+
+            for (let idx = 1; idx < rows.length; idx++) {
+                const prevLen = rows[idx - 1].length;
+                rows[idx] = rows[idx - 1].slice(0, prevLen - rows[idx].length).concat(rows[idx]);
+            }
+
+            // Clear any previous results
+            const resultsContainer = document.getElementById('results');
+            resultsContainer.innerHTML = '';
+
+            // Create and append the table to the results container
+            const table = document.createElement('table');
+            table.className = 'table-auto w-full mt-4';
+            rows.forEach(row => {
+                const tr = document.createElement('tr');
+                row.forEach(cell => {
+                    const td = document.createElement('td');
+                    td.className = 'border px-4 py-2';
+                    td.textContent = cell;
+                    tr.appendChild(td);
+                });
+                table.appendChild(tr);
+            });
+            resultsContainer.appendChild(table);
+        }
+    </script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="container mx-auto">
+        <h1 class="text-2xl font-bold mb-4">Expand Data Algorithm</h1>
+        <textarea id="inputData" class="w-full p-4 border rounded-md" rows="10" placeholder="Paste your tab-separated data here..."></textarea>
+        <button onclick="expandData()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4">
+            Expand
+        </button>
+        <div id="results">
+            <!-- The results table will be inserted here -->
+        </div>
+    </div>
+</body>
+</html>
+
