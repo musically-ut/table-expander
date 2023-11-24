@@ -1,59 +1,129 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Expand Data Algorithm</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        // This function will be executed when the user clicks the "Expand" button
-        function expandData() {
-            // Get the input data from the textarea
-            const inputData = document.getElementById('inputData').value;
-            // Split the input data into rows and cells
-            let rows = inputData.split('\n').map(row => row.split('\t'));
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Table Expander</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="favicon" href="favicon.ico" />
+        <script>
+            // This function will be executed when the user clicks the "Expand" button
+            function expandData() {
+                // Get the input data from the textarea
+                const inputData = document.getElementById("inputData").value;
+                // Split the input data into rows and cells, ignore empty rows
+                let rows = inputData
+                    .split("\n")
+                    .map((row) => row.trim())
+                    .map((row) => row.split("\t").map((cell) => cell.trim()))
+                    .filter((row) => row.some((cell) => cell.length > 0));
 
-            // Your Python algorithm translated to JavaScript
-            const num_cols = rows.map(x => x.length);
-            const max_cols = Math.max(...num_cols);
+                // Your Python algorithm translated to JavaScript
+                const num_cols = rows.map((x) => x.length);
+                const max_cols = Math.max(...num_cols);
 
-            for (let idx = 1; idx < rows.length; idx++) {
-                const prevLen = rows[idx - 1].length;
-                rows[idx] = rows[idx - 1].slice(0, prevLen - rows[idx].length).concat(rows[idx]);
+                for (let idx = 1; idx < rows.length; idx++) {
+                    const prevLen = rows[idx - 1].length;
+                    rows[idx] = rows[idx - 1]
+                        .slice(0, prevLen - rows[idx].length)
+                        .concat(rows[idx]);
+                }
+
+                // Clear any previous results
+                const resultsContainer = document.getElementById("results");
+                resultsContainer.innerHTML = "";
+
+                // Create and append the table to the results container
+                const table = document.createElement("table");
+                table.className = "table-auto w-full mt-4";
+                rows.forEach((row) => {
+                    const tr = document.createElement("tr");
+                    row.forEach((cell) => {
+                        const td = document.createElement("td");
+                        td.className = "border px-4 py-2";
+                        td.textContent = cell;
+                        tr.appendChild(td);
+                    });
+                    table.appendChild(tr);
+                });
+                resultsContainer.appendChild(table);
+
+                // Show the "Copy Table Data" button
+                document
+                    .querySelector(".js-copy-btn")
+                    .classList.remove("hidden");
             }
 
-            // Clear any previous results
-            const resultsContainer = document.getElementById('results');
-            resultsContainer.innerHTML = '';
+            function copyTableData() {
+                // Select the table element
+                const table = document.querySelector("table");
+                let dataStr = ""; // This will hold the table data as a string
 
-            // Create and append the table to the results container
-            const table = document.createElement('table');
-            table.className = 'table-auto w-full mt-4';
-            rows.forEach(row => {
-                const tr = document.createElement('tr');
-                row.forEach(cell => {
-                    const td = document.createElement('td');
-                    td.className = 'border px-4 py-2';
-                    td.textContent = cell;
-                    tr.appendChild(td);
-                });
-                table.appendChild(tr);
-            });
-            resultsContainer.appendChild(table);
-        }
-    </script>
-</head>
-<body class="bg-gray-100 p-8">
-    <div class="container mx-auto">
-        <h1 class="text-2xl font-bold mb-4">Expand Data Algorithm</h1>
-        <textarea id="inputData" class="w-full p-4 border rounded-md" rows="10" placeholder="Paste your tab-separated data here..."></textarea>
-        <button onclick="expandData()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4">
-            Expand
-        </button>
-        <div id="results">
-            <!-- The results table will be inserted here -->
+                // Loop over table rows and cells
+                for (const row of table.rows) {
+                    let rowData = [];
+                    for (const cell of row.cells) {
+                        rowData.push(cell.textContent);
+                    }
+                    // Join the row's data with tabs and add a new line at the end
+                    dataStr += rowData.join("\t") + "\n";
+                }
+
+                // Use the Clipboard API to copy the data string to the clipboard
+                navigator.clipboard
+                    .writeText(dataStr)
+                    .then(function () {
+                        console.log("Table data copied to clipboard");
+                    })
+                    .catch(function (error) {
+                        console.error("Copy failed", error);
+                    });
+            }
+
+            function clearData() {
+                document.getElementById("inputData").value = "";
+                document.getElementById("results").innerHTML = "";
+                document.querySelector(".js-copy-btn").classList.add("hidden");
+            }
+        </script>
+    </head>
+    <body class="bg-gray-100 p-8">
+        <div class="container mx-auto">
+            <div class="mb-6 flex items-center">
+                <img
+                    src="assets/logo.png"
+                    alt="Table Expander Logo"
+                    class="mr-3 h-12"
+                />
+                <h1 class="text-2xl font-bold">Table Expander</h1>
+            </div>
+            <textarea
+                id="inputData"
+                class="w-full rounded-md border p-4"
+                rows="10"
+                placeholder="Paste your tab-separated data here..."
+            ></textarea>
+            <button
+                onclick="expandData()"
+                class="mt-4 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+            >
+                Expand
+            </button>
+            <button
+                class="mt-4 rounded bg-slate-300 px-4 py-2 font-bold text-white hover:bg-slate-500"
+                onclick="clearData()"
+            >
+                Clear
+            </button>
+            <div id="results">
+                <!-- The results table will be inserted here -->
+            </div>
+            <button
+                onclick="copyTableData()"
+                class="js-copy-btn mt-4 hidden rounded bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-700"
+            >
+                Copy Table Data
+            </button>
         </div>
-    </div>
-</body>
+    </body>
 </html>
-
